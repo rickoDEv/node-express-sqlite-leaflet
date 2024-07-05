@@ -1,0 +1,40 @@
+# Node.js & NPM
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+
+# Dependency directories
+/jspm_packages/
+/bower_components/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs and debugging
+*.log
+logs/
+*.sql
+
+# Build and compiled files
+/build/
+/dist/
+/*.bundle.js
+/*.bundle.js.map
+
+# Environment-specific files
+.env
+.env.local
+.env.*.local
+
+# Others
+*.class
+*.jar
+*.war
+*.ear

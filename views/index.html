@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Marker App</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        form {
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        form label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        form input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        form button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            float: right;
+        }
+        form button:hover {
+            background-color: #45a049;
+        }
+        #map {
+            height: 400px;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Location Marker App</h1>
+    
+    <div id="map"></div>
+    
+    <h2>Add New Location</h2>
+    <form action="/add-location" method="POST" autocomplete="off">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
+        <label for="lat">Latitude:</label>
+        <input type="text" id="lat" name="lat" required><br><br>
+        <label for="long">Longitude:</label>
+        <input type="text" id="long" name="long" required><br><br>
+        <button type="submit">Add Location</button>
+    </form>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map'); // Initialize map instance
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Function to fetch locations from server and add markers to the map
+        async function fetchLocations() {
+            const response = await fetch('/locations');
+            const locations = await response.json();
+
+            // Create an array to store marker locations
+            const markers = [];
+
+            locations.forEach(location => {
+                const marker = L.marker([location.lat, location.long])
+                                .bindPopup(location.name)
+                                .addTo(map);
+                markers.push(marker.getLatLng()); // Add marker's LatLng to array
+            });
+
+            // If there are markers, fit the map to the bounds of all markers
+            if (markers.length > 0) {
+                const bounds = L.latLngBounds(markers); // Calculate bounds based on markers
+                map.fitBounds(bounds); // Fit map to bounds
+            } else {
+                // Set default view to Kenya if no markers are available
+                map.setView([0.5, 37.5], 6); // Adjust latitude, longitude, and zoom level as needed
+            }
+        }
+
+        // Call fetchLocations when the document is loaded
+        document.addEventListener('DOMContentLoaded', fetchLocations);
+
+        // Submit form handler (optional)
+        const form = document.querySelector('form');
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const formData = new FormData(form);
+            const name = formData.get('name');
+            const lat = formData.get('lat');
+            const long = formData.get('long');
+
+            const response = await fetch('/add-location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, lat, long }),
+            });
+
+            // const result = await response.json();
+
+            // console.log('Location added:', result);
+
+            // Clear form fields after submission (optional)
+            form.reset();
+
+            // Refresh locations and map markers
+            fetchLocations();
+        });
+    </script>
+</body>
+</html>
